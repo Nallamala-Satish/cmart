@@ -7,7 +7,8 @@ import {homeProductData} from '../../api/constant';
 import ProductShortDetail from './ProductShortDetail';
 import {StackNav} from '../../navigation/NavigationKeys';
 
-export default function HomeProductComponent() {
+export default function HomeProductComponent(props) {
+  const {productData,addFavourite, removeFavourite} = props
   const navigation = useNavigation();
   const onPressDetail = itm =>
     navigation.navigate(StackNav.ProductDetail, {item: itm});
@@ -17,6 +18,8 @@ export default function HomeProductComponent() {
       <ProductShortDetail
         item={item}
         index={index}
+        addFavourite={addFavourite}
+        removeFavourite={removeFavourite}
         onPress={() => onPressDetail(item)}
       />
     );
@@ -24,7 +27,7 @@ export default function HomeProductComponent() {
 
   return (
     <FlashList
-      data={homeProductData}
+      data={productData}
       renderItem={renderItem}
       numColumns={2}
       keyExtractor={(item, index) => index.toString()}

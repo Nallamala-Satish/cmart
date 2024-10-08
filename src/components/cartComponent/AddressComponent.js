@@ -17,7 +17,8 @@ import CText from '../common/CText';
 export default function AddressComponent(props) {
   const {item, selectedType, onPressAddress, isSelect} = props;
   const colors = useSelector(state => state.theme.theme);
-
+  
+// console.log('item..',item)
   return (
     <TouchableOpacity
       onPress={onPressAddress}
@@ -29,7 +30,8 @@ export default function AddressComponent(props) {
         {colors.dark ? <LocationDark /> : <LocationLight />}
         <View style={localStyles.defaultTextContainer}>
           <View style={localStyles.titleStyle}>
-            <CText type={'B18'}>{item?.title}</CText>
+           {item != undefined ? (<CText type={'B18'}>{item?.type}</CText>) :
+           ( <CText type={'B18'} style={styles.mt2}>Add Address</CText>)}
             {item?.isDefault && (
               <View
                 style={[
@@ -41,14 +43,18 @@ export default function AddressComponent(props) {
             )}
           </View>
           <CText type={'r14'} style={styles.mt2}>
-            {item?.address}
+          {item != undefined ?(
+            <>
+            {item?.address + ','+item?.landmark+ ','+item?.area+ ','+item?.state+ ','+item?.country}
+            </>
+          ):(null)}
           </CText>
         </View>
       </View>
       {!!isSelect ? (
         <Ionicons
           name={
-            item?.title === selectedType
+            item?.id === selectedType
               ? 'radio-button-on'
               : 'radio-button-off'
           }
@@ -57,8 +63,10 @@ export default function AddressComponent(props) {
         />
       ) : colors.dark ? (
         <EditDark />
+        // <></>
       ) : (
         <EditLight />
+        // <></>
       )}
     </TouchableOpacity>
   );

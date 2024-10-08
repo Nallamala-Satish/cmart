@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+<uses-permission android:name="android.permission.READ_SMS" />
+<uses-permission android:name="android.permission.SEND_SMS" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
 
     <application
       android:name=".MainApplication"
@@ -9,6 +16,14 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
+        <service android:name="com.google.firebase.auth.api.phone.FirebaseAuthService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true">
+        <intent-filter>
+            <action android:name="com.google.firebase.auth.api.gms.service.START" />
+        </intent-filter>
+    </service>
+      <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBekijxwNLHXIw4yMgsepwJMM2-7K1k-Rs" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

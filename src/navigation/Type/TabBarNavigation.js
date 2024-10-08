@@ -2,7 +2,7 @@ import {StyleSheet, View} from 'react-native';
 import React, {memo} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useSelector} from 'react-redux';
-
+import LinearGradient from 'react-native-linear-gradient';
 // Local Imports
 import {TabRoute} from '../NavigationRoutes';
 import {TabNav} from '../NavigationKeys';
@@ -54,6 +54,16 @@ export default function TabBarNavigation() {
           localStyle.tabBarStyle,
           {backgroundColor: colors.backgroundColor},
         ],
+
+        // tabBarBackground: () => (
+        //   <LinearGradient
+        //     colors={['#ebebf3', '#303e84']}
+        //     start={{ x: 0, y: 0 }}
+        //     end={{ x: 1, y: 1 }}
+        //     style={StyleSheet.absoluteFill}
+        //   />
+        // ),
+
         tabBarShowLabel: false,
       }}
       initialRouteName={TabNav.HomeTab}>

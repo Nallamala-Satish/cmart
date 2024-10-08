@@ -2,7 +2,7 @@ import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 // Custom Imports
 import strings from '../../../i18n/strings';
@@ -16,13 +16,15 @@ import ProductShortDetail from '../../../components/homeComponent/ProductShortDe
 import {StackNav} from '../../../navigation/NavigationKeys';
 
 export default function MostPopular() {
+  const route = useRoute()
+  const {productData}= route.params;
   const navigation = useNavigation();
   const colors = useSelector(state => state.theme.theme);
 
   const onPressDetail = itm =>
     navigation.navigate(StackNav.ProductDetail, {item: itm});
 
-  const onPressSearch = () => navigation.navigate(StackNav.Search);
+  const onPressSearch = () => navigation.navigate(StackNav.Search,{productData:productData});
 
   const RightIcon = () => {
     return (
@@ -47,7 +49,7 @@ export default function MostPopular() {
       <CHeader title={strings.mostPopular} rightIcon={<RightIcon />} />
       <View style={localStyles.root}>
         <FlashList
-          data={homeProductData}
+          data={productData}
           renderItem={renderItem}
           numColumns={2}
           keyExtractor={(item, index) => index.toString()}

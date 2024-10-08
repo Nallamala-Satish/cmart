@@ -5,6 +5,9 @@ import AppNavigator from './navigation';
 import {styles} from './themes';
 import CSafeAreaView from './components/common/CSafeAreaView';
 
+
+
+
 const App = () => {
   const colors = useSelector(state => state.theme.theme);
 

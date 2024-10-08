@@ -12,7 +12,7 @@ const OnBoardingSlide = [
     image: images.onBordingImg2,
   },
   {
-    text: "Let's fulfill your daily needs with Ecomark right now!",
+    text: "Let's fulfill your daily needs with CMart right now!",
     image: images.onBordingImg3,
   },
 ];
@@ -131,12 +131,12 @@ const helperCategoryData = [
 
 const helperData = [
   {
-    title: 'What is Ecomark?',
+    title: 'What is CMart?',
     description:
       'Anistream is a streaming service that offers a wide variety of anime titles.',
   },
   {
-    title: 'How to use Ecomark?',
+    title: 'How to use CMart?',
     description:
       'You can sign up for Anistream by downloading the app from the App Store or Google Play Store.',
   },
@@ -146,12 +146,12 @@ const helperData = [
       'You can remove anime on your wishlist by clicking the heart icon on the anime details page.',
   },
   {
-    title: 'Is Ecomark free to use?',
+    title: 'Is CMart free to use?',
     description:
       'You can subscribe to premium by clicking the premium button on the home page.',
   },
   {
-    title: 'How to add promo on Ecomark?',
+    title: 'How to add promo on CMart?',
     description:
       'You can download anime by clicking the download icon on the anime details page.',
   },

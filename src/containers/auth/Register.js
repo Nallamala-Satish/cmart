@@ -111,16 +111,17 @@ const Register = ({navigation}) => {
     );
   });
   const onPressSignWithPassword = async () => {
-    await setAsyncStorageData(ACCESS_TOKEN, 'access_token');
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: StackNav.SetUpProfile,
-          params: {title: strings.fillYourProfile},
-        },
-      ],
-    });
+    // await setAsyncStorageData(ACCESS_TOKEN, 'access_token');
+    navigation.navigate(StackNav.SetUpProfile,{email:email,password:password})
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [
+    //     {
+    //       name: StackNav.SetUpProfile,
+    //       params: {title: strings.fillYourProfile},
+    //     },
+    //   ],
+    // });
   };
 
   const onPressPasswordEyeIcon = () => {
@@ -237,7 +238,7 @@ const Register = ({navigation}) => {
             containerStyle={[localStyles.signBtnContainer]}
             onPress={onPressSignWithPassword}
             bgColor={isSubmitDisabled && colors.disabledColor}
-            // disabled={isSubmitDisabled}
+            disabled={isSubmitDisabled}
           />
           <View style={localStyles.divider}>
             <View

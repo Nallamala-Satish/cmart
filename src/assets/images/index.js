@@ -1,5 +1,5 @@
 export default {
-  logo: require('./logo.png'),
+  logo: require('./applogo.png'),
   onBordingImg1: require('./onBordingImg1.png'),
   onBordingImg2: require('./onBordingImg2.png'),
   onBordingImg3: require('./onBordingImg3.png'),

@@ -26,8 +26,11 @@ import CHeader from '../../../components/common/CHeader';
 import strings from '../../../i18n/strings';
 import {walletData} from '../../../api/constant';
 import {StackNav} from '../../../navigation/NavigationKeys';
+import { useRoute } from '@react-navigation/native';
 
 export default function TransactionHistory({navigation}) {
+  const route = useRoute()
+  const {WalletData} = route.params
   const colors = useSelector(state => state.theme.theme);
 
   const onPressItem = () => navigation.navigate(StackNav.EReceipt);
@@ -47,7 +50,7 @@ export default function TransactionHistory({navigation}) {
         onPress={onPressItem}
         style={localStyles.renderItemContainer}>
         <View style={[styles.rowCenter, styles.flex]}>
-          {item?.status === strings.topUp ? (
+          {/* {item?.status === strings.topUp ? (
             colors.dark ? (
               <TopUpWalletDark />
             ) : (
@@ -61,23 +64,23 @@ export default function TransactionHistory({navigation}) {
                 {backgroundColor: colors.imageBg},
               ]}
             />
-          )}
+          )} */}
           <View style={[styles.mh10, styles.flex]}>
             <CText numberOfLines={1} type={'b16'}>
               {item.product}
             </CText>
             <CText numberOfLines={1} style={styles.mt5} type={'s14'}>
-              {item.date}
+              {item.transaction_date}
             </CText>
           </View>
         </View>
         <View style={styles.itemsEnd}>
-          <CText type={'b16'}>{item?.price}</CText>
+          <CText type={'b16'}>₹{item?.amount}</CText>
           <View style={[styles.rowCenter, styles.mt5]}>
             <CText type={'s14'} style={[styles.mr5]}>
               {item?.status}
             </CText>
-            {item?.status === strings.topUp ? <TopUpIcon /> : <OrderIcon />}
+            {/* {item?.status === strings.topUp ? <TopUpIcon /> : <OrderIcon />} */}
           </View>
         </View>
       </TouchableOpacity>
@@ -86,9 +89,11 @@ export default function TransactionHistory({navigation}) {
 
   return (
     <CSafeAreaView>
-      <CHeader title={strings.transactionHistory} rightIcon={<RightIcon />} />
+      <CHeader title={strings.transactionHistory}
+      //  rightIcon={<RightIcon />} 
+       />
       <FlatList
-        data={walletData}
+        data={WalletData}
         renderItem={renderHistoryItem}
         keyExtractor={(item, index) => index.toString()}
         showsVerticalScrollIndicator={false}
@@ -109,5 +114,6 @@ const localStyles = StyleSheet.create({
     ...styles.rowSpaceBetween,
     ...styles.ph20,
     ...styles.mb15,
+    marginTop:10
   },
 });

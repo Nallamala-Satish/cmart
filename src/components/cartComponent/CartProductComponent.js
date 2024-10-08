@@ -14,7 +14,7 @@ import {TrashDark, TrashLight} from '../../assets/svgs';
 export default function CartProductComponent(props) {
   const {item, isTrash = false, trashIcon = true, onPressTrash} = props;
   const colors = useSelector(state => state.theme.theme);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(parseInt(item && item.qty));
 
   const onPressRemove = () => {
     if (quantity > 1) {
@@ -31,7 +31,7 @@ export default function CartProductComponent(props) {
         {backgroundColor: colors.dark ? colors.dark2 : colors.grayScale1},
       ]}>
       <Image
-        source={item?.productImage}
+        source={{uri:item?.image}}
         style={[
           localStyles.productImageStyle,
           {backgroundColor: colors.dark ? colors.imageBg : colors.white},
@@ -40,7 +40,7 @@ export default function CartProductComponent(props) {
       <View style={localStyles.rightContainer}>
         <View style={localStyles.titleContainer}>
           <CText style={styles.flex} numberOfLines={1} type={'b16'}>
-            {item?.product}
+            {item?.name}
           </CText>
           {!isTrash && trashIcon && (
             <TouchableOpacity onPress={onPressTrash} style={styles.ml5}>
@@ -49,25 +49,25 @@ export default function CartProductComponent(props) {
           )}
         </View>
         <View style={localStyles.subItemStyle}>
-          <View
+          {/* <View
             style={[
               localStyles.circleContainer,
               {backgroundColor: item?.color},
             ]}
-          />
+          /> 
           <CText type={'s12'}>
             {strings.color} {' |  '}
-          </CText>
-          {!!item?.size && (
+          </CText> */}
+          {!!item?.product_variants[0] && item?.product_variants[0].variant_values && (
             <CText type={'s12'}>
-              {strings.size + ' = ' + item?.size}
+              {strings.size + ` = ${item?.product_variants[0] && item?.product_variants[0].variant_values}` }
               {'  |  '}
             </CText>
           )}
-          <CText type={'s12'}>{strings.qty + ' = 1'}</CText>
+          <CText type={'s12'}>{strings.qty + ` = ${item.qty} `}</CText>
         </View>
         <View style={localStyles.btnContainer}>
-          <CText type={'b16'}>{item?.price}</CText>
+          <CText type={'b16'}> ₹ {item?.special_price * quantity}</CText>
           {isTrash ? (
             <View
               style={[

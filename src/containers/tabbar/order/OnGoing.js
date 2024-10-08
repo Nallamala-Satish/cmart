@@ -10,16 +10,20 @@ import ProductOrderComponent from '../../../components/ProductOrderComponent';
 import {onGoingData} from '../../../api/constant';
 import RenderNullComponent from '../../../components/RenderNullComponent';
 
-export default function OnGoing() {
+export default function OnGoing({orders}) {
+ 
+   const OnGoingOrderList = orders.filter(item => item.active_status.trim() === 'pending');
+  // console.log('orders',OnGoingOrderList)
+
   const renderItem = ({item}) => {
     return <ProductOrderComponent item={item} />;
   };
 
   return (
     <View style={localStyles.root}>
-      {!!onGoingData && onGoingData.length ? (
+      {!!OnGoingOrderList && OnGoingOrderList.length ? (
         <FlashList
-          data={onGoingData}
+          data={OnGoingOrderList}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           showsVerticalScrollIndicator={false}

@@ -14,28 +14,31 @@ import {homeProductData} from '../../../api/constant';
 import {StackNav} from '../../../navigation/NavigationKeys';
 import CDebounce from '../../../components/common/CDebounce';
 import ProductShortDetail from '../../../components/homeComponent/ProductShortDetail';
+import { useRoute } from '@react-navigation/native';
 
 export default function Search({navigation}) {
+  const route = useRoute()
+  const {productData}= route.params;
   const [search, setSearch] = useState('');
   const [initialData, setInitialData] = useState([]);
 
   const debounceSearch = CDebounce(search, 500);
 
   useEffect(() => {
-    setInitialData(homeProductData);
+    setInitialData(productData);
   }, []);
 
   useEffect(() => {
     if (!!debounceSearch) {
       filterData();
     } else {
-      setInitialData(homeProductData);
+      setInitialData(productData);
     }
   }, [debounceSearch]);
 
   const filterData = () => {
-      const filteredData = homeProductData.filter(item =>
-        item.product.toLowerCase().includes(debounceSearch.toLowerCase()),
+      const filteredData = productData.filter(item =>
+        item.name.toLowerCase().includes(debounceSearch.toLowerCase()),
       );
       setInitialData(filteredData);
   };

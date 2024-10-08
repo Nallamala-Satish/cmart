@@ -9,14 +9,103 @@ import {LikeWithBg, UnLikeWithBg} from '../../assets/svgs';
 import {deviceWidth, moderateScale} from '../../common/constants';
 import {styles} from '../../themes';
 import strings from '../../i18n/strings';
+import { getJwtToken, getUserDetail } from '../../utils/asyncstorage';
+import { API_BASE_URL } from '../../api/ApiClient';
 
 export default function ProductShortDetail(props) {
   const colors = useSelector(state => state.theme.theme);
+  const [loading,setLoading] = useState(false)
   const [isLiked, setIsLiked] = useState(false);
-  const {item, index, onPress} = props;
+  const {item, index, onPress,addFavourite, removeFavourite} = props;
 
-  const onPressLike = () => setIsLiked(!isLiked);
+  const onPressLike = () => {
+    if(item.is_favorite == '1'){
+    removeFavourite(item)
+    setIsLiked(!isLiked)
+    }else{
+    addFavourite(item)
+    setIsLiked(!isLiked)
+    }
+  };
+  console.log('....',item)
 
+//   const addFavourite = async ()=>{
+    
+//     const Token = await getJwtToken()
+//     const userinfo = await getUserDetail()
+//     setLoading(true)
+//     const myHeaders = new Headers();
+//   myHeaders.append("Authorization", `Bearer ${Token}`);
+
+//    const formdata = new FormData();
+//   formdata.append("branch_id", `${userinfo && userinfo.branch_id}`);
+//   formdata.append("user_id", `${userinfo && userinfo.id}`);
+//   formdata.append("type", `${'products'}`);
+//   formdata.append("type_id", `${item.id}`);
+
+// const requestOptions = {
+// method: "POST",
+// headers: myHeaders,
+// body: formdata,
+// redirect: "follow"
+// };
+// fetch(`${API_BASE_URL}/add_to_favorites`, requestOptions)
+// .then((response) => response.text())
+// .then((result) => {
+//   const res = JSON.parse(result)
+//   console.log(res)
+//   if( res && res.error == false){
+//     alert(res.message)
+//   }else{
+//     alert(res.message)
+//   }
+//   setLoading(false)
+// })
+// .catch((error) => {
+//   console.error(error)
+//   setLoading(false)
+// });
+//   }
+
+//   const removeFavourite = async ()=>{
+    
+//     const Token = await getJwtToken()
+//     const userinfo = await getUserDetail()
+//     setLoading(true)
+//     const myHeaders = new Headers();
+//   myHeaders.append("Authorization", `Bearer ${Token}`);
+
+//    const formdata = new FormData();
+//   formdata.append("branch_id", `${userinfo && userinfo.branch_id}`);
+//   formdata.append("user_id", `${userinfo && userinfo.id}`);
+//   formdata.append("type", `${'products'}`);
+//   formdata.append("type_id", `${item.id}`);
+
+// const requestOptions = {
+// method: "POST",
+// headers: myHeaders,
+// body: formdata,
+// redirect: "follow"
+// };
+// fetch(`${API_BASE_URL}/remove_from_favorites`, requestOptions)
+// .then((response) => response.text())
+// .then((result) => {
+//   const res = JSON.parse(result)
+//   console.log(res)
+//   if( res && res.error == false){
+//     alert(res.message)
+//   }else{
+//     alert(res.message)
+//   }
+//   setLoading(false)
+// })
+// .catch((error) => {
+//   console.error(error)
+//   setLoading(false)
+// });
+//   }
+
+  
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -26,17 +115,17 @@ export default function ProductShortDetail(props) {
         index % 2 === 0 ? styles.mr5 : styles.ml5,
       ]}>
       <TouchableOpacity style={localStyles.likeContainer} onPress={onPressLike}>
-        {isLiked ? <LikeWithBg /> : <UnLikeWithBg />}
+        {item.is_favorite == '1'  ? <LikeWithBg /> : <UnLikeWithBg />}
       </TouchableOpacity>
       <Image
-        source={item?.productImage}
+        source={{uri:item?.image || item.order_items[0] && item.order_items[0].image}}
         style={[
           localStyles.productImageStyle,
           {backgroundColor: colors.dark ? colors.imageBg : colors.grayScale1},
         ]}
       />
       <CText style={[styles.flex, styles.mt10]} numberOfLines={1} type={'b16'}>
-        {item?.product}
+        {item?.name}
       </CText>
       <View style={localStyles.subItemStyle}>
         <Image
@@ -47,15 +136,15 @@ export default function ProductShortDetail(props) {
           type={'s14'}
           style={styles.mr5}
           color={colors.dark ? colors.grayScale3 : colors.grayScale7}>
-          {item?.rating}
-          {'  | '}
+          {item?.rating || item?.product_details[0] && item?.product_details[0].rating }
+          {/* {'  | '} */}
         </CText>
-        <View
+        {/* <View
           style={[localStyles.paidContainer, {backgroundColor: colors.dark3}]}>
-          <CText type={'s12'}>{item?.sold + ' ' + strings.sold}</CText>
-        </View>
+          <CText type={'s12'}>{item?.sold  + ' ' + strings.sold}</CText>
+        </View> */}
       </View>
-      <CText type={'b16'}>{item?.price}</CText>
+      <CText type={'b16'}> ₹ {item.min_max_price && item.min_max_price.special_price || item.price || item?.total}</CText>
     </TouchableOpacity>
   );
 }

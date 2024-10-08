@@ -12,14 +12,54 @@ import strings from '../../i18n/strings';
 import CButton from '../common/CButton';
 import CDivider from '../common/CDivider';
 import CartProductComponent from '../cartComponent/CartProductComponent';
+import { API_BASE_URL } from '../../api/ApiClient';
+import { getJwtToken, getUserDetail } from '../../utils/asyncstorage';
 
 export default function TrashItem(props) {
-  const {SheetRef, item} = props;
+  const {SheetRef, item, getCartData} = props;
   const colors = useSelector(state => state.theme.theme);
 
   const onPressCancel = () => SheetRef?.current?.hide();
 
-  const onPressYes = () => SheetRef?.current?.hide();
+  const onPressYes = () => SheetRef?.current?.hide()
+  
+
+  const removeFromCart = async (id)=>{
+    const Token = await getJwtToken()
+    const userinfo = await getUserDetail()
+
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+  const formdata = new FormData();
+formdata.append("user_id", `${userinfo.id}`);
+formdata.append("branch_id", `${userinfo.branch_id}`);
+formdata.append("product_variant_id", `${id}`);
+
+const requestOptions = {
+  method: "POST",
+  headers: myHeaders,
+  body: formdata,
+  redirect: "follow"
+};
+fetch(`${API_BASE_URL}/remove_from_cart`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+   const res = JSON.parse(result)
+console.log(res)
+if( res && res.error == false){
+  getCartData()
+  SheetRef?.current?.hide()
+}else{
+  alert(res.message)
+}
+
+})
+.catch((error) => {
+console.error(error)
+
+});
+  }
 
   return (
     <ActionSheet
@@ -55,7 +95,9 @@ export default function TrashItem(props) {
           title={strings.yesRemove}
           type={'S16'}
           containerStyle={localStyles.skipBtnContainer}
-          onPress={onPressYes}
+          onPress={()=>{
+            removeFromCart(item.product_variant_id)
+          }}
         />
       </View>
     </ActionSheet>

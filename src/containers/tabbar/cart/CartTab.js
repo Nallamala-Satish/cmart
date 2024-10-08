@@ -1,6 +1,6 @@
 // Library Imports
-import {StyleSheet, TouchableOpacity, View} from 'react-native';
-import React, {useRef, useState} from 'react';
+import {StyleSheet, TouchableOpacity, View,Image} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
 
@@ -25,14 +25,21 @@ import CButton from '../../../components/common/CButton';
 import {deviceWidth, getHeight, moderateScale} from '../../../common/constants';
 import {StackNav} from '../../../navigation/NavigationKeys';
 import TrashItem from '../../../components/models/TrashItem';
+import Loader from '../../../components/Loader';
+import { API_BASE_URL } from '../../../api/ApiClient';
+import { getJwtToken, getUserDetail } from '../../../utils/asyncstorage';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function CartTab({navigation}) {
   const colors = useSelector(state => state.theme.theme);
   const trashSheetRef = useRef(null);
+  const isFocused = useIsFocused()
   const [trashData, setTrashData] = useState({});
-  const [cartData, setCartData] = useState(onGoingData);
+  const [cartData, setCartData] = useState([]);
+  const [overallAmount,setOverallAmount] = useState('')
+  const [loading,setLoading]= useState(false)
 
-  const onPressSearch = () => navigation.navigate(StackNav.Search);
+  const onPressSearch = () => navigation.navigate(StackNav.Search,{productData:cartData});
   const onPressTrash = item => {
     setTrashData(item);
     trashSheetRef?.current?.show();
@@ -54,7 +61,19 @@ export default function CartTab({navigation}) {
   const LeftIcon = () => {
     return (
       <View style={styles.pr10}>
-        {colors.dark ? <AppLogoDark /> : <AppLogoLight />}
+        {colors.dark ? (
+          // <AppLogoDark />
+          <Image
+           source={require('../../../assets/images/applogo.png')}
+           style={{width:40,height:30}}
+          />
+          ) : (
+          // <AppLogoLight />
+          <Image
+           source={require('../../../assets/images/applogo.png')}
+           style={{width:40,height:30}}
+          />
+          )}
       </View>
     );
   };
@@ -68,8 +87,51 @@ export default function CartTab({navigation}) {
     );
   };
 
+  const getCartData = async ()=>{
+    const Token = await getJwtToken()
+    console.log(Token)
+    const userinfo = await getUserDetail()
+    setLoading(true)
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+  const formdata = new FormData();
+formdata.append("user_id", `${userinfo.id}`);
+formdata.append("branch_id", `${userinfo.branch_id}`);
+
+const requestOptions = {
+  method: "POST",
+  headers: myHeaders,
+  body: formdata,
+  redirect: "follow"
+};
+fetch(`${API_BASE_URL}/get_user_cart`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+   const res = JSON.parse(result)
+console.log('cart data',res.data)
+if( res && res.error == false){
+  setCartData(res.data)
+  setOverallAmount(res.overall_amount)
+}else{
+  // alert(res.message)
+  setCartData([])
+}
+setLoading(false)
+})
+.catch((error) => {
+console.error(error)
+setLoading(false)
+});
+  }
+
+  useEffect(()=>{
+    getCartData()
+  },[isFocused])
+
   return (
     <CSafeAreaView>
+        <Loader loading={loading}></Loader>
       <CHeader
         isHideBack={true}
         title={strings.cart}
@@ -79,7 +141,7 @@ export default function CartTab({navigation}) {
       {!!cartData && cartData.length ? (
         <View style={localStyles.root}>
           <FlashList
-            data={cartData}
+            data={cartData || []}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             showsVerticalScrollIndicator={false}
@@ -94,7 +156,7 @@ export default function CartTab({navigation}) {
                 color={colors.dark ? colors.grayScale3 : colors.grayScale6}>
                 {strings.totalPrice}
               </CText>
-              <CText type={'b20'}>{'$1256.00'}</CText>
+              <CText type={'b20'}> ₹ {overallAmount}</CText>
             </View>
             <CButton
               type={'b16'}
@@ -112,7 +174,7 @@ export default function CartTab({navigation}) {
           title2={strings.onGoingNullDesc}
         />
       )}
-      <TrashItem SheetRef={trashSheetRef} item={trashData} />
+      <TrashItem SheetRef={trashSheetRef} item={trashData} getCartData={getCartData}/>
     </CSafeAreaView>
   );
 }

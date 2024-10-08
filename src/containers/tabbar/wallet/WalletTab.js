@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
 // Custom Imports
@@ -32,18 +32,26 @@ import strings from '../../../i18n/strings';
 import SubHeader from '../../../components/SubHeader';
 import {walletData} from '../../../api/constant';
 import {StackNav} from '../../../navigation/NavigationKeys';
+import { getJwtToken, getUserDetail } from '../../../utils/asyncstorage';
+import { API_BASE_URL } from '../../../api/ApiClient';
+import { useIsFocused } from '@react-navigation/native';
+import Loader from '../../../components/Loader';
 
 export default function WalletTab({navigation}) {
   const colors = useSelector(state => state.theme.theme);
+  const [loading,setLoading]= useState(false)
+  const [balance,setBalance] = useState('')
+  const [WalletData,setWalletData] = useState([])
+  const isFocused = useIsFocused()
 
-  const onPressSeeAll = () => navigation.navigate(StackNav.TransactionHistory);
+  const onPressSeeAll = () => navigation.navigate(StackNav.TransactionHistory,{WalletData:WalletData});
 
   const onPressWallet = () => navigation.navigate(StackNav.TopUpEWallet);
 
   const onPressItem = itm =>
     navigation.navigate(StackNav.EReceipt, {item: itm});
 
-  const onPressSearch = () => navigation.navigate(StackNav.Search);
+  const onPressSearch = () => navigation.navigate(StackNav.Search,{productData:[]});
 
   const RightIcon = () => {
     return (
@@ -61,7 +69,19 @@ export default function WalletTab({navigation}) {
   const LeftIcon = () => {
     return (
       <View style={styles.pr10}>
-        {colors.dark ? <AppLogoDark /> : <AppLogoLight />}
+        {colors.dark ? (
+          // <AppLogoDark />
+          <Image
+           source={require('../../../assets/images/applogo.png')}
+           style={{width:40,height:30}}
+          />
+          ) : (
+          // <AppLogoLight />
+          <Image
+           source={require('../../../assets/images/applogo.png')}
+           style={{width:40,height:30}}
+          />
+          )}
       </View>
     );
   };
@@ -73,7 +93,7 @@ export default function WalletTab({navigation}) {
         onPress={() => onPressItem(item)}
         style={localStyles.renderItemContainer}>
         <View style={[styles.rowCenter, styles.flex]}>
-          {item?.status === strings.topUp ? (
+          {/* {item?.status === strings.topUp ? (
             colors.dark ? (
               <TopUpWalletDark />
             ) : (
@@ -87,23 +107,23 @@ export default function WalletTab({navigation}) {
                 {backgroundColor: colors.imageBg},
               ]}
             />
-          )}
+          )} */}
           <View style={[styles.mh10, styles.flex]}>
             <CText numberOfLines={1} type={'b16'}>
               {item.product}
             </CText>
             <CText numberOfLines={1} style={styles.mt5} type={'s14'}>
-              {item.date}
+              {item.transaction_date}
             </CText>
           </View>
         </View>
         <View style={styles.itemsEnd}>
-          <CText type={'b16'}>{item?.price}</CText>
+          <CText type={'b16'}>₹{item?.amount}</CText>
           <View style={[styles.rowCenter, styles.mt5]}>
             <CText type={'s14'} style={[styles.mr5]}>
               {item?.status}
             </CText>
-            {item?.status === strings.topUp ? <TopUpIcon /> : <OrderIcon />}
+            {/* {item?.status === strings.topUp ? <TopUpIcon /> : <OrderIcon />} */}
           </View>
         </View>
       </TouchableOpacity>
@@ -129,8 +149,51 @@ export default function WalletTab({navigation}) {
     );
   };
 
+  const getProducts = async ()=>{
+    const Token = await getJwtToken()
+    const userinfo = await getUserDetail()
+    setLoading(true)
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+   const formdata = new FormData();
+   formdata.append("limit", "10");
+  formdata.append("transaction_type", `wallet`);
+  formdata.append("user_id", `${userinfo && userinfo.id}`);
+
+const requestOptions = {
+method: "POST",
+headers: myHeaders,
+body: formdata,
+redirect: "follow"
+};
+fetch(`${API_BASE_URL}/transactions`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+  const res = JSON.parse(result)
+  console.log(res)
+  if( res && res.error == false){
+    setWalletData(res.data)
+    setBalance(res.balance)
+   
+  }else{
+    alert(res.message)
+  }
+  setLoading(false)
+})
+.catch((error) => {
+  console.error(error)
+  setLoading(false)
+});
+   } 
+
+   useEffect(()=>{
+    getProducts();
+   },[isFocused])
+
   return (
     <CSafeAreaView>
+       <Loader loading={loading}></Loader>
       <CHeader
         isHideBack={true}
         title={strings.wallet}
@@ -139,7 +202,7 @@ export default function WalletTab({navigation}) {
       />
 
       <FlatList
-        data={walletData}
+        data={WalletData || []}
         renderItem={renderHistoryItem}
         keyExtractor={(item, index) => index.toString()}
         ListHeaderComponent={renderHeaderItem}
@@ -167,5 +230,6 @@ const localStyles = StyleSheet.create({
     ...styles.rowSpaceBetween,
     ...styles.ph20,
     ...styles.mb15,
+    marginTop:10
   },
 });

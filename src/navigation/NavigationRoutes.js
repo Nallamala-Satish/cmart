@@ -50,6 +50,7 @@ import Reviews from '../containers/tabbar/home/Reviews';
 import CheckOut from '../containers/tabbar/cart/CheckOut';
 import AddPromo from '../containers/tabbar/cart/AddPromo';
 import ChooseShipping from '../containers/tabbar/cart/ChooseShipping';
+import OtpScreen from '../containers/auth/OtpScreen';
 
 export const TabRoute = {
   HomeTab,
@@ -64,6 +65,7 @@ export const StackRoute = {
   WelcomeScreen,
   OnBoarding,
   Login,
+  OtpScreen,
   Register,
   TabBar,
   Connect,

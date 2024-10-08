@@ -10,24 +10,43 @@ import {styles} from '../../themes';
 import {moderateScale} from '../../common/constants';
 import strings from '../../i18n/strings';
 import images from '../../assets/images';
+import HomeProductComponent from './HomeProductComponent';
 
 export default function MostPopularCategory(props) {
-  const {chipsData, isStar = false} = props;
+  const {chipsData,productCategories,productData,addFavourite, removeFavourite,isStar = false} = props;
   const colors = useSelector(state => state.theme.theme);
-  const [selectedChips, setSelectedChips] = useState([strings.all]);
+  const [selectedChips, setSelectedChips] = useState(["All"]);
   const [extraData, setExtraData] = useState(true);
 
+//  console.log('//',productCategories )
   useEffect(() => {
     setExtraData(!extraData);
   }, [selectedChips, colors]);
 
   const onPressChips = value => {
-    if (selectedChips.includes(value)) {
-      setSelectedChips(selectedChips.filter(item => item !== value));
-    } else {
-      setSelectedChips([...selectedChips, value]);
-    }
+    // if (selectedChips.includes(value)) {
+    //   setSelectedChips(selectedChips.filter(item => item !== value));
+    // } else {
+    //   setSelectedChips([...selectedChips, value]);
+    // }
+    
+    if (value === 'All') {
+      setSelectedChips(['All']);
+  } else {
+      if (selectedChips.includes('All')) {
+        setSelectedChips([value]);
+      } else {
+        setSelectedChips(prevTags => 
+              prevTags.includes(value) 
+              ? prevTags.filter(t => t !== value) 
+              : [...prevTags, value]
+          );
+      }
+  }
+
   };
+
+  const filteredData = selectedChips.includes('All') ? productData : productData.filter(item => selectedChips.some(tag =>item.category_name.includes(tag)) );
 
   const renderChips = ({item}) => {
     return (
@@ -81,7 +100,7 @@ export default function MostPopularCategory(props) {
   return (
     <View>
       <FlashList
-        data={!!chipsData ? chipsData : mostPopularData}
+        data={!!chipsData ? chipsData : productCategories}
         renderItem={renderChips}
         extraData={extraData}
         keyExtractor={(item, index) => index.toString()}
@@ -90,6 +109,7 @@ export default function MostPopularCategory(props) {
         contentContainerStyle={styles.mb15}
         estimatedItemSize={10}
       />
+      <HomeProductComponent productData={filteredData} addFavourite={addFavourite} removeFavourite={removeFavourite}/>
     </View>
   );
 }

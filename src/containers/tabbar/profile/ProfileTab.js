@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {createRef, useState} from 'react';
+import React, {createRef, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -32,14 +32,34 @@ import {setAsyncStorageData} from '../../../utils/helpers';
 import images from '../../../assets/images';
 import {StackNav} from '../../../navigation/NavigationKeys';
 import LogOut from '../../../components/models/LogOut';
-import {removeUserDetail} from '../../../utils/asyncstorage';
+import {getJwtToken, getUserDetail, removeUserDetail} from '../../../utils/asyncstorage';
+import Loader from '../../../components/Loader';
+import { API_BASE_URL } from '../../../api/ApiClient';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function ProfileTab({navigation}) {
   const color = useSelector(state => state.theme.theme);
+  const isFocused = useIsFocused()
   const language = useSelector(state => state?.profile?.language);
   const [isEnabled, setIsEnabled] = useState(!!color.dark);
+  const [addressList,setAddressList]= useState([])
+  const [loading,setLoading]= useState(false)
+  const [userdata,setUserData] = useState('')
+  const[profileData,setProfileData] = useState('')
   const dispatch = useDispatch();
   const LogOutSheetRef = createRef();
+
+  // const userdata = useSelector(state => state.UserData)
+
+  const getUserData = async ()=>{
+    const res = await getUserDetail()
+     setUserData(res)
+   }
+   useEffect(()=>{
+    getUserData()
+   },[isFocused])
+
+  //  console.log('userdata.',userdata)
 
   const onPressMenu = () => {};
 
@@ -67,8 +87,15 @@ export default function ProfileTab({navigation}) {
 
   const onPressItem = item => {
     if (item.route === StackNav.SetUpProfile) {
-      navigation.navigate(item.route, {title: item.header});
-    } else {
+      navigation.navigate(item.route, {title: item.header,userRes:userdata});
+    }else if (item.route === StackNav.Address) {
+      navigation.navigate(item.route,
+         {title: strings.shippingAddress,
+          addressList:addressList,
+        GetAddressList:GetAddressList
+      });
+    }
+     else {
       navigation.navigate(item.route);
     }
   };
@@ -104,13 +131,101 @@ export default function ProfileTab({navigation}) {
   const LeftIcon = () => {
     return (
       <View style={styles.pr10}>
-        {color.dark ? <AppLogoDark /> : <AppLogoLight />}
+        {colors.dark ? (
+          // <AppLogoDark />
+          <Image
+           source={require('../../../assets/images/applogo.png')}
+           style={{width:40,height:30}}
+          />
+          ) : (
+          // <AppLogoLight />
+          <Image
+           source={require('../../../assets/images/applogo.png')}
+           style={{width:40,height:30}}
+          />
+          )}
       </View>
     );
   };
 
+  const profile = async ()=>{
+    setLoading(true)
+    const Token = await getJwtToken()
+    const userinfo = await getUserDetail()
+    setLoading(true)
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+   const formdata = new FormData();
+  formdata.append("user_id", `${userinfo && userinfo.id}`);
+
+const requestOptions = {
+method: "POST",
+headers: myHeaders,
+body: formdata,
+redirect: "follow"
+};
+fetch(`${API_BASE_URL}/get_settings`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+  const res = JSON.parse(result)
+  // console.log(res)
+  if( res && res.error == false){
+    setProfileData(res.data)
+  }else{
+    alert(res.message)
+  }
+  setLoading(false)
+})
+.catch((error) => {
+  console.error(error)
+  setLoading(false)
+});
+  }
+
+  const GetAddressList = async ()=>{
+    const Token = await getJwtToken()
+    const userinfo = await getUserDetail()
+    setLoading(true)
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+   const formdata = new FormData();
+  formdata.append("user_id", `${userinfo && userinfo.id}`);
+
+const requestOptions = {
+method: "POST",
+headers: myHeaders,
+body: formdata,
+redirect: "follow"
+};
+fetch(`${API_BASE_URL}/get_address`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+  const res = JSON.parse(result)
+  // console.log(res.data);
+  if( res && res.error == false){
+    setAddressList(res.data)
+  }else{
+    setAddressList([])
+  }
+  setLoading(false)
+})
+.catch((error) => {
+  console.error(error)
+  setLoading(false)
+});
+   }
+
+useEffect(()=>{
+  profile()
+  GetAddressList()
+},[isFocused])
+
+
   return (
     <CSafeAreaView>
+      <Loader loading={loading}></Loader>
       <CHeader
         isHideBack={true}
         title={strings.profile}
@@ -125,7 +240,8 @@ export default function ProfileTab({navigation}) {
           onPress={onPressEditProfile}
           style={[styles.selfCenter, styles.mb20]}>
           <Image
-            source={color.dark ? images.userDark : images.userLight}
+            // source={color.dark ? images.userDark : images.userLight}
+            source={{uri:userdata?.image}}
             style={localStyles.userImage}
           />
           <View style={localStyles.editIcon}>
@@ -134,10 +250,10 @@ export default function ProfileTab({navigation}) {
         </TouchableOpacity>
         <View style={styles.mb20}>
           <CText type="b24" align={'center'}>
-            {'Andrew Ainsley'}
+          {userdata?.username}
           </CText>
           <CText type="m14" align={'center'} style={styles.mt10}>
-            {'andrew_ainsley@yourdomain.com'}
+          {userdata?.email}
           </CText>
         </View>
         {ProfileSetting.map((item, index) => {

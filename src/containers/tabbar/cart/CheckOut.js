@@ -1,5 +1,5 @@
 import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {FlashList} from '@shopify/flash-list';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -25,32 +25,12 @@ import {deviceWidth, moderateScale} from '../../../common/constants';
 import CButton from '../../../components/common/CButton';
 import CInput from '../../../components/common/CInput';
 import {StackNav} from '../../../navigation/NavigationKeys';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import { API_BASE_URL } from '../../../api/ApiClient';
+import Loader from '../../../components/Loader';
+import { getJwtToken, getSelectAddress, getUserDetail } from '../../../utils/asyncstorage';
 
-const RenderFlashListHeader = React.memo(() => {
-  const navigation = useNavigation();
-  const onPressAddress = () =>
-    navigation.navigate(StackNav.Address, {
-      item: strings.shippingAddress,
-    });
-  return (
-    <View>
-      <View style={styles.ph20}>
-        <CDivider style={styles.mb5} />
-        <CText type={'b18'} style={[styles.mb15, styles.mt10]}>
-          {strings.shippingAddress}
-        </CText>
-      </View>
-      <AddressComponent item={AddressData[1]} onPressAddress={onPressAddress} />
-      <View style={styles.ph20}>
-        <CDivider style={styles.mb5} />
-        <CText type={'b18'} style={styles.mt15}>
-          {strings.orderList}
-        </CText>
-      </View>
-    </View>
-  );
-});
+
 
 const RenderFlashListFooter = () => {
   const colors = useSelector(state => state.theme.theme);
@@ -89,6 +69,8 @@ const RenderFlashListFooter = () => {
       </View>
     );
   };
+
+
   return (
     <View style={styles.ph20}>
       <CDivider style={styles.mt20} />
@@ -162,7 +144,49 @@ const RenderFlashListFooter = () => {
 
 export default function CheckOut({navigation, route}) {
   const cartData = route?.params?.cartData;
+  const isFocused = useIsFocused()
   const colors = useSelector(state => state.theme.theme);
+  const [loading,setLoading]= useState(false)
+  const [addressList,setAddressList]= useState([])
+  const [address,setAddress] = useState(null)
+
+  const getAddress = async()=>{
+         const res = await getSelectAddress()
+         setAddress(JSON.parse(res))
+  }
+ 
+
+  const Address = address != null ? address : addressList[0]
+  console.log('address',Address)
+  
+  const RenderFlashListHeader = React.memo(() => {
+    const navigation = useNavigation();
+    const onPressAddress = () =>
+      navigation.navigate(StackNav.Address, {
+        item: strings.shippingAddress,
+        // addressList:addressList,
+        // GetAddressList:GetAddressList,
+        // setAddressList:setAddressList
+      });
+   
+    return (
+      <View>
+        <View style={styles.ph20}>
+          <CDivider style={styles.mb5} />
+          <CText type={'b18'} style={[styles.mb15, styles.mt10]}>
+            {strings.shippingAddress}
+          </CText>
+        </View>
+        <AddressComponent item={Address} onPressAddress={onPressAddress} />
+        <View style={styles.ph20}>
+          <CDivider style={styles.mb5} />
+          <CText type={'b18'} style={styles.mt15}>
+            {strings.orderList}
+          </CText>
+        </View>
+      </View>
+    );
+  });
 
   const onPressPayment = () =>
     navigation.navigate(StackNav.Payment, {
@@ -183,8 +207,48 @@ export default function CheckOut({navigation, route}) {
     return <CartProductComponent item={item} isTrash={true} />;
   };
 
+  const GetAddressList = async ()=>{
+    const Token = await getJwtToken()
+    const userinfo = await getUserDetail()
+    setLoading(true)
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+   const formdata = new FormData();
+  formdata.append("user_id", `${userinfo && userinfo.id}`);
+
+const requestOptions = {
+method: "POST",
+headers: myHeaders,
+body: formdata,
+redirect: "follow"
+};
+fetch(`${API_BASE_URL}/get_address`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+  const res = JSON.parse(result)
+  console.log(res.data);
+  if( res && res.error == false){
+    setAddressList(res.data)
+  }else{
+    setAddressList([])
+  }
+  setLoading(false)
+})
+.catch((error) => {
+  console.error(error)
+  setLoading(false)
+});
+   }
+
+   useEffect(()=>{
+    getAddress()
+    GetAddressList()
+   },[isFocused])
+
   return (
     <CSafeAreaView>
+      <Loader loading={loading}></Loader>
       <CHeader title={strings.checkOut} rightIcon={<RightIcon />} />
       <View style={styles.flex}>
         <FlashList

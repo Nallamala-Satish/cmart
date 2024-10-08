@@ -21,7 +21,7 @@ const SetSecure = ({navigation}) => {
   const onPressContinue = () => {
     navigation.reset({
       index: 0,
-      routes: [{name: StackNav.TabBar}],
+      routes: [{name: StackNav.Login}],
     });
   };
   const onPressSkip = () => setModalVisible(true);

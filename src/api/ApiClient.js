@@ -1,0 +1,1 @@
+export const API_BASE_URL = "https://app.thecmart.in/web/app/v1/api" 

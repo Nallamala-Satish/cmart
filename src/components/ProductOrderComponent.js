@@ -23,6 +23,7 @@ export default function ProductOrderComponent(props) {
   const navigation = useNavigation();
   const colors = useSelector(state => state.theme.theme);
 
+  // console.log("item",item)
   const onPressBtn = () => {
     if (isCompleted) {
       onPressComplete(item);
@@ -38,7 +39,7 @@ export default function ProductOrderComponent(props) {
         {backgroundColor: colors.dark ? colors.dark2 : colors.grayScale1},
       ]}>
       <Image
-        source={item?.productImage}
+        source={{uri:item.order_items[0] && item.order_items[0].image}}
         style={[
           localStyles.productImageStyle,
           {backgroundColor: colors.dark ? colors.imageBg : colors.white},
@@ -46,10 +47,10 @@ export default function ProductOrderComponent(props) {
       />
       <View style={localStyles.rightContainer}>
         <CText style={styles.flex} numberOfLines={1} type={'b16'}>
-          {item?.product}
+          {item?.name}
         </CText>
         <View style={[localStyles.subItemStyle, !isCategory && styles.mv15]}>
-          <View
+          {/* <View
             style={[
               localStyles.circleContainer,
               {backgroundColor: item?.color},
@@ -57,14 +58,14 @@ export default function ProductOrderComponent(props) {
           />
           <CText type={'s12'}>
             {strings.color} {' |  '}
-          </CText>
-          {!!item?.size && (
+          </CText> */}
+          {!!item?.order_items[0]  && item.order_items[0].variant_values && (
             <CText type={'s12'}>
-              {strings.size + ' = ' + item?.size}
+              {strings.size + ` = ${item?.order_items[0] && item?.order_items[0].variant_values}` }
               {'  |  '}
             </CText>
           )}
-          <CText type={'s12'}>{strings.qty + ' = 1'}</CText>
+          <CText type={'s12'}>{strings.qty + ` = ${item.order_items[0] && item.order_items[0].quantity } `}</CText>
         </View>
         {!!isCategory && (
           <View
@@ -73,12 +74,12 @@ export default function ProductOrderComponent(props) {
               {backgroundColor: colors.dark3},
             ]}>
             <CText type={'s12'}>
-              {isCompleted ? strings.completed : strings.inDelivery}
+              {item?.active_status == 'delivered' ? strings.completed : strings.inDelivery}
             </CText>
           </View>
         )}
         <View style={localStyles.btnContainer}>
-          <CText type={'b16'}>{item?.price}</CText>
+          <CText type={'b16'}>{item?.total}</CText>
           {!!isButton && (
             <CButton
               title={isCompleted ? strings.leaveReview : strings.trackOrder}

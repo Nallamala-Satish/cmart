@@ -1,6 +1,6 @@
 // Libraries import
 import {StyleSheet, Image, TouchableOpacity, View} from 'react-native';
-import React, {createRef, useState, useEffect} from 'react';
+import React, {createRef, useState, useEffect,useRef} from 'react';
 import {useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
@@ -27,13 +27,17 @@ import CButton from '../../components/common/CButton';
 import {GenderData} from '../../api/constant';
 import {EditDark, EditLight} from '../../assets/svgs';
 import CText from '../../components/common/CText';
+import { useRoute } from '@react-navigation/native';
+import { validateEmail, validatePassword } from '../../utils/validators';
 
 const SetUpProfile = props => {
+  const colors = useSelector(state => state.theme.theme);
   const {navigation} = props;
   const headerTitle = props.route?.params?.title;
+  const ProfilePictureSheetRef = useRef();
+  const route = useRoute();
+  const {userRes}= route.params;
 
-  const colors = useSelector(state => state.theme.theme);
-  const ProfilePictureSheetRef = createRef();
   const BlurredStyle = {
     backgroundColor: colors.inputBg,
     borderColor: colors.bColor,
@@ -45,11 +49,18 @@ const SetUpProfile = props => {
   const BlurredIconStyle = colors.grayScale5;
   const FocusedIconStyle = colors.textColor;
 
-  const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState(userRes != null ? userRes.email : '');
+  const [emailError, setEmailError] = useState('');
+  const [fullName, setFullName] = useState(userRes != null ? userRes.username : '');
   const [nickname, setNickname] = useState('');
-  const [phoneNo, setPhoneNo] = useState('');
+  const [phoneNo, setPhoneNo] = useState(userRes != null ? userRes.mobile : '');
   const [gender, setGender] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordIcon, setPasswordIcon] = useState(BlurredIconStyle);
+  const [passwordInputStyle, setPasswordInputStyle] = useState(BlurredStyle);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [emailInputStyle, setEmailInputStyle] = useState(BlurredStyle);
   const [fullNameInputStyle, setFullNameInputStyle] = useState(BlurredStyle);
   const [phoneNoInputStyle, setPhoneNoInputStyle] = useState(BlurredStyle);
@@ -95,7 +106,7 @@ const SetUpProfile = props => {
   const onChangedFullName = text => setFullName(text);
   const onChangedNickName = text => setNickname(text);
   const onChangedPhoneNo = text => setPhoneNo(text);
-  const onChangedEmail = text => setEmail(text);
+  // const onChangedEmail = text => setEmail(text);
   const onChangedGender = text => setGender(text.value.toLowerCase());
 
   useEffect(() => {
@@ -106,6 +117,25 @@ const SetUpProfile = props => {
     setCountryCodeLib(country.cca2);
     setCallingCodeLib('+' + country.callingCode[0]);
     closeCountryPicker();
+  };
+
+  useEffect(() => {
+    if (
+      email.length > 0 &&
+      password.length > 0 &&
+      !emailError &&
+      !passwordError
+    ) {
+      setIsSubmitDisabled(false);
+    } else {
+      setIsSubmitDisabled(true);
+    }
+  }, [email, password, emailError, passwordError]);
+
+  const onChangedEmail = val => {
+    const {msg} = validateEmail(val.trim());
+    setEmail(val.trim());
+    setEmailError(msg);
   };
 
   const openCountryPicker = () => setVisiblePiker(true);
@@ -143,7 +173,20 @@ const SetUpProfile = props => {
 
   const onPressUpdate = () => {};
 
-  const onPressContinue = () => navigation.navigate(StackNav.SetPin);
+  const onPressContinue = () => {
+    navigation.navigate(StackNav.SetPin,{
+      email:email,
+      password:password,
+      fullName:fullName,
+      // gender:gender,
+      phoneNo:phoneNo,
+      // dateOfBirth:dateOfBirth,
+      selectImage:selectImage,
+      callingCodeLib:callingCodeLib
+    })
+  };
+
+  
 
   const onPressProfilePic = () => ProfilePictureSheetRef?.current.show();
 
@@ -183,14 +226,52 @@ const SetUpProfile = props => {
       />
     );
   };
+  const onChangedPassword = val => {
+    const {msg} = validatePassword(val.trim());
+    setPassword(val.trim());
+    setPasswordError(msg);
+  };
 
+  const PasswordIcon = () => (
+    <Ionicons
+      name="lock-closed"
+      size={moderateScale(20)}
+      color={passwordIcon}
+    />
+  );
+  const onFocusPassword = () => {
+    onFocusInput(setPasswordInputStyle);
+    onFocusIcon(setPasswordIcon);
+  };
+  const onBlurPassword = () => {
+    onBlurInput(setPasswordInputStyle);
+    onBlurIcon(setPasswordIcon);
+  };
+  const onPressPasswordEyeIcon = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
+  const RightPasswordEyeIcon = () => (
+    <TouchableOpacity
+      onPress={onPressPasswordEyeIcon}
+      style={localStyles.eyeIconContainer}>
+      <Ionicons
+        name={isPasswordVisible ? 'eye-off' : 'eye'}
+        size={moderateScale(20)}
+        color={passwordIcon}
+      />
+    </TouchableOpacity>
+  );
   return (
     <CSafeAreaView>
       <CHeader
-        title={headerTitle}
-        isHideBack={headerTitle === strings.editProfile ? false : true}
+        title={headerTitle === strings.editProfile ? headerTitle :''}
+        isHideBack={headerTitle === strings.editProfile ? false : false}
       />
       <KeyBoardAvoidWrapper containerStyle={[styles.p20]}>
+      <CText type={'b40'} align={'left'} >
+            {headerTitle === strings.editProfile ? '' :strings.createYourAccount}
+          </CText>
         <TouchableOpacity
           onPress={onPressProfilePic}
           style={[styles.selfCenter, styles.mb20]}>
@@ -222,7 +303,7 @@ const SetUpProfile = props => {
           _onFocus={onFocusFullName}
           onBlur={onBlurFullName}
         />
-        <CInput
+        {/* <CInput
           placeHolder={strings.nickname}
           _value={nickname}
           autoCapitalize={'none'}
@@ -234,7 +315,7 @@ const SetUpProfile = props => {
           ]}
           _onFocus={onFocusNickName}
           onBlur={onBlurNickName}
-        />
+        /> 
         <TouchableOpacity
           onPress={onPressCalender}
           style={[
@@ -262,12 +343,13 @@ const SetUpProfile = props => {
           onConfirm={handleDateConfirm}
           onCancel={hideDatePicker}
           date={new Date()}
-          minimumDate={new Date()}
-        />
+          maximumDate={new Date()}
+        />*/}
         <CInput
           placeHolder={strings.email}
           keyBoardType={'email-address'}
           _value={email}
+          _errorText={emailError}
           autoCapitalize={'none'}
           toGetTextFieldValue={onChangedEmail}
           rightAccessory={() => <EmailIcon />}
@@ -278,7 +360,27 @@ const SetUpProfile = props => {
           ]}
           _onFocus={onFocusEmail}
           onBlur={onBlurEmail}
+          // _editable={false}
         />
+          <CInput
+            placeHolder={strings.password}
+            keyBoardType={'default'}
+            _value={password}
+            _errorText={passwordError}
+            autoCapitalize={'none'}
+            insideLeftIcon={() => <PasswordIcon />}
+            toGetTextFieldValue={onChangedPassword}
+            inputContainerStyle={[
+              {backgroundColor: colors.inputBg},
+              localStyles.inputContainerStyle,
+              passwordInputStyle,
+            ]}
+            _isSecure={isPasswordVisible}
+            inputBoxStyle={[localStyles.inputBoxStyle]}
+            _onFocus={onFocusPassword}
+            onBlur={onBlurPassword}
+            rightAccessory={() => <RightPasswordEyeIcon />}
+          />
         <CInput
           placeHolder={strings.phoneNumber}
           keyBoardType={'number-pad'}
@@ -294,7 +396,7 @@ const SetUpProfile = props => {
           _onFocus={onFocusPhoneNo}
           onBlur={onBlurPhoneNo}
         />
-        <Dropdown
+        {/* <Dropdown
           style={[
             localStyles.dropdownStyle,
             {
@@ -322,7 +424,7 @@ const SetUpProfile = props => {
             backgroundColor: colors.inputBg,
           }}
           activeColor={colors.inputBg}
-        />
+        /> */}
       </KeyBoardAvoidWrapper>
 
       <CButton
@@ -335,7 +437,10 @@ const SetUpProfile = props => {
         onPress={
           headerTitle === strings.editProfile ? onPressUpdate : onPressContinue
         }
-        containerStyle={localStyles.continueBtnStyle}
+        color={isSubmitDisabled && colors.white}
+        containerStyle={[localStyles.continueBtnStyle]}
+        bgColor={isSubmitDisabled && colors.disabledColor}
+        disabled={isSubmitDisabled}
       />
 
       <ProfilePicture

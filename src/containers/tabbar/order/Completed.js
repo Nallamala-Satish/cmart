@@ -11,7 +11,9 @@ import {completedOrderData} from '../../../api/constant';
 import LeaveReview from '../../../components/models/LeaveReview';
 import RenderNullComponent from '../../../components/RenderNullComponent';
 
-export default function Completed() {
+export default function Completed({orders}) {
+  const CompletedOrderList = orders.filter(item => item.active_status.trim() === 'delivered');
+  // console.log(CompletedOrderList.length)
   const leaveReviewRef = useRef(null);
   const [selectedItem, setSelectedItem] = useState({});
 
@@ -32,9 +34,9 @@ export default function Completed() {
 
   return (
     <View style={localStyles.root}>
-      {!!completedOrderData && completedOrderData.length ? (
+      {!!CompletedOrderList && CompletedOrderList.length ? (
         <FlashList
-          data={completedOrderData}
+          data={CompletedOrderList}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           showsVerticalScrollIndicator={false}

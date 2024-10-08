@@ -13,39 +13,54 @@ import AddressComponent from '../../../components/cartComponent/AddressComponent
 import CButton from '../../../components/common/CButton';
 import {styles} from '../../../themes';
 import {StackNav} from '../../../navigation/NavigationKeys';
+import Loader from '../../../components/Loader';
+import { getJwtToken, getUserDetail, setSelectAddress } from '../../../utils/asyncstorage';
+import { API_BASE_URL } from '../../../api/ApiClient';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function Address({route, navigation}) {
   const itm = route.params?.item;
+  // const addressList = route.params?.addressList
+  // const GetAddressList = route.params?.GetAddressList
+  // const setAddressList = route.params?.setAddressList
   const colors = useSelector(state => state.theme.theme);
+  const isFocused = useIsFocused()
   const [selectedType, setSelectedType] = useState('');
   const [extraData, setExtraData] = useState(false);
-
+  const [loading,setLoading]= useState(false)
+  const [addressList,setAddressList]= useState([])
+// console.log('item./..',itm)
   useEffect(() => {
     setExtraData(!extraData);
   }, [selectedType]);
 
-  const onPressAddAddress = () => navigation.navigate(StackNav.AddAddress);
+  const onPressAddAddress = () => navigation.navigate(StackNav.AddAddress,{GetAddressList:GetAddressList});
 
   const onPressAdd = () => {
     if (!!itm) {
       navigation.goBack();
     } else {
-      navigation.navigate(StackNav.AddAddress);
+      navigation.navigate(StackNav.AddAddress,{GetAddressList:GetAddressList});
     }
   };
   const onPressAddress = item => {
     if (!!itm) {
-      setSelectedType(item?.title);
+      console.log(item?.id)
+      setSelectedType(item?.id);
     } else {
-      navigation.navigate(StackNav.AddAddress);
+      navigation.navigate(StackNav.AddAddress,{GetAddressList:GetAddressList});
     }
   };
 
   const renderAddressList = ({item}) => {
+  
     return (
       <AddressComponent
         item={item}
-        onPressAddress={() => onPressAddress(item)}
+        onPressAddress={async () =>{
+           await setSelectAddress(item)
+           onPressAddress(item)
+          }}
         selectedType={selectedType}
         isSelect={!!itm}
       />
@@ -69,11 +84,50 @@ export default function Address({route, navigation}) {
     );
   };
 
+   const GetAddressList = async ()=>{
+    const Token = await getJwtToken()
+    const userinfo = await getUserDetail()
+    setLoading(true)
+    const myHeaders = new Headers();
+  myHeaders.append("Authorization", `Bearer ${Token}`);
+
+   const formdata = new FormData();
+  formdata.append("user_id", `${userinfo && userinfo.id}`);
+
+const requestOptions = {
+method: "POST",
+headers: myHeaders,
+body: formdata,
+redirect: "follow"
+};
+fetch(`${API_BASE_URL}/get_address`, requestOptions)
+.then((response) => response.text())
+.then((result) => {
+  const res = JSON.parse(result)
+  console.log(res.data);
+  if( res && res.error == false){
+    setAddressList(res.data)
+  }else{
+    setAddressList([])
+  }
+  setLoading(false)
+})
+.catch((error) => {
+  console.error(error)
+  setLoading(false)
+});
+   }
+
+useEffect(()=>{
+  GetAddressList();
+},[isFocused])
+
   return (
     <CSafeAreaView>
+      <Loader loading={loading}></Loader>
       <CHeader title={!!itm ? itm : strings.address} />
       <FlashList
-        data={AddressData}
+        data={addressList || []}
         extraData={extraData}
         renderItem={renderAddressList}
         keyExtractor={(item, index) => index.toString()}

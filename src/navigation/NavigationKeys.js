@@ -12,6 +12,7 @@ export const StackNav = {
   Splash: 'Splash',
   Connect: 'Connect',
   Login: 'Login',
+  OtpScreen : "OtpScreen",
   Register: 'Register',
   onBoarding: 'onBoarding',
   WelcomeScreen: 'WelcomeScreen',

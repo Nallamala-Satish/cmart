@@ -10,9 +10,10 @@ export default function AuthStack() {
   return (
     <Stack.Navigator
       screenOptions={{headerShown: false}}
-      initialRouteName={StackNav.Connect}>
-      <Stack.Screen name={StackNav.Connect} component={StackRoute.Connect} />
+      initialRouteName={StackNav.Login}>
+      {/* <Stack.Screen name={StackNav.Connect} component={StackRoute.Connect} /> */}
       <Stack.Screen name={StackNav.Login} component={StackRoute.Login} />
+      <Stack.Screen name={StackNav.OtpScreen} component={StackRoute.OtpScreen} />
       <Stack.Screen name={StackNav.Register} component={StackRoute.Register} />
       <Stack.Screen
         name={StackNav.SelectInterest}

@@ -1,5 +1,5 @@
 // Library import
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View,Alert} from 'react-native';
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
@@ -23,12 +23,19 @@ import {
   WalletModalLight,
 } from '../../assets/svgs';
 import {walletData} from '../../api/constant';
+import Loader from '../../components/Loader';
+import { API_BASE_URL } from '../../api/ApiClient';
+
 
 const SetPin = ({navigation, route}) => {
   const colors = useSelector(state => state.theme.theme);
   const title = route.params?.title;
+  const {email,password,fullName,phoneNo,gender,dateOfBirth,selectImage,callingCodeLib}= route.params;
+// console.log(email,password,fullName,phoneNo,gender,dateOfBirth,selectImage?.path,callingCodeLib)
+
   const isWallet = route.params?.isWallet;
   const [pin, setPin] = useState('');
+  const [loading,setLoading]= useState(false)
   const [modalVisible, setModalVisible] = useState(false);
 
   const isPaymentModal = colors.dark ? (
@@ -54,6 +61,53 @@ const SetPin = ({navigation, route}) => {
     }
   };
 
+  const Register = async ()=>{
+   setLoading(true)
+   const myHeaders = new Headers();
+// myHeaders.append("Cookie", "ci_session=5fd099dnbfj3ng6tmecrinu5saeivlhb");
+
+const formdata = new FormData();
+formdata.append("name", `${fullName}`);
+formdata.append("email", `${email}`);
+formdata.append("mobile", `${phoneNo}`);
+formdata.append("country_code", `${callingCodeLib}`);
+formdata.append("referral_code", `${pin}`);
+formdata.append("fcm_id", "");
+formdata.append("friends_code", "");
+formdata.append("latitude", "");
+formdata.append("longitude", "");
+
+const requestOptions = {
+  method: "POST",
+  headers: myHeaders,
+  body: formdata,
+  redirect: "follow"
+};
+console.log(formdata)
+fetch(`${API_BASE_URL}/register_user`, requestOptions)
+  .then((response) => response.text())
+  .then((result) =>{ 
+    const res= JSON.parse(result)
+    console.log(result)
+    if( res && res.error == false){
+      Alert.alert('Registration', `${res.message}`,
+        [
+          {text: 'No', onPress: () => {}},
+          {text: 'YES',onPress: async() => {
+            navigation.navigate(StackNav.Login);
+          }}
+        ])
+    }else{
+      alert(res.message)
+    }
+    setLoading(false)
+  })
+  .catch((error) =>{
+     console.error(error)
+     setLoading(false)
+    });
+  }
+
   const onPressERiceipt = () => {
     setModalVisible(false);
     navigation.navigate(StackNav.EReceipt, {item: walletData[3]});
@@ -66,6 +120,7 @@ const SetPin = ({navigation, route}) => {
 
   return (
     <CSafeAreaView>
+      <Loader loading={loading}></Loader>
       <CHeader title={!!title ? title : strings.createNewPin} />
       <KeyBoardAvoidWrapper contentContainerStyle={styles.flexGrow1}>
         <View style={localStyles.root}>
@@ -94,8 +149,8 @@ const SetPin = ({navigation, route}) => {
         </View>
         <CButton
           type={'S16'}
-          title={strings.continue}
-          onPress={onPressPinContinue}
+          title={strings.signUp}
+          onPress={Register}
           containerStyle={localStyles.btnContainerStyle}
         />
         <SuccessModal

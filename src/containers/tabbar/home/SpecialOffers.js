@@ -30,7 +30,7 @@ export default function SpecialOffers() {
             colors.dark ? images.swiperImageDark1 : images.swiperImageLight1
           }
         />
-        <HomeBanner
+        {/* <HomeBanner
           image={
             colors.dark ? images.swiperImageDark2 : images.swiperImageLight2
           }
@@ -44,7 +44,7 @@ export default function SpecialOffers() {
           image={
             colors.dark ? images.swiperImageDark4 : images.swiperImageLight4
           }
-        />
+        /> */}
       </ScrollView>
     </CSafeAreaView>
   );

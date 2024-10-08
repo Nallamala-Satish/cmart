@@ -28,7 +28,7 @@ export default function WelcomeScreen({navigation}) {
           {'Welcome to 👋'}
         </CText>
         <CText color={colors.white} type={'B66'}>
-          {'Ecomark'}
+          {'CMart'}
         </CText>
         <CText style={styles.mt15} color={colors.white} type={'R18'}>
           {'The best e-commerce app of the century for your daily needs!'}
