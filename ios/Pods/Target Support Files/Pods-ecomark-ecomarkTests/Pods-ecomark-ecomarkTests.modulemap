@@ -1,0 +1,6 @@
+module Pods_ecomark_ecomarkTests {
+  umbrella header "Pods-ecomark-ecomarkTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
